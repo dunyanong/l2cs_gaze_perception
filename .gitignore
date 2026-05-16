@@ -1,0 +1,54 @@
+# ROS 2 / colcon build artifacts
+build/
+install/
+log/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# CMake / C++ build files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Generated files
+*.o
+*.so
+*.a
+*.dll
+*.dylib
+*.exe
+
+# ROS generated messages / interfaces
+rosidl_generator_*/
+rosidl_typesupport_*/
+
+# Test and coverage output
+test_results/
+coverage/
+*.gcda
+*.gcno
+*.gcov
+
+# Editor / IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment / local config
+.env
+*.local
+
+# Logs
+*.log

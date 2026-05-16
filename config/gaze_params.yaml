@@ -1,0 +1,10 @@
+/gaze_node:
+  ros__parameters:
+    camera_id: 0
+    model_arch: "ResNet50"
+    device: 0
+    confidence_threshold: 0.5
+    max_faces: 3
+    publish_fps: 30
+    resolution_width: 640
+    resolution_height: 480
