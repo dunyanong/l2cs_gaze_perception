@@ -15,6 +15,8 @@ l2cs_gaze_perception/
 │   └── gaze_params.yaml              ROS2 parameter file
 ├── launch/
 │   └── gaze_pipeline.launch.py       Launch file
+├── rviz/
+│   └── gaze_pipeline.rviz            Pre-configured RViz2 layout
 ├── models/
 │   └── L2CSNet_gaze360.pkl          Pre-trained weights
 ├── resource/
@@ -139,46 +141,86 @@ ros2 run l2cs_gaze_perception gaze_node --ros-args \
 
 ## RViz Visualization
 
-Launch RViz:
+A pre-configured RViz layout is included. Launch it after starting the node:
 
 ```bash
-rviz2
+ros2 run rviz2 rviz2 -d $(ros2 pkg prefix l2cs_gaze_perception)/share/l2cs_gaze_perception/rviz/gaze_pipeline.rviz
 ```
 
-### Display setup
+The config sets up the following displays automatically:
+
+| Display | Topic | Description |
+|---|---|---|
+| **Image** | `/gaze/image_annotated` | Annotated camera feed with bounding boxes and gaze arrows |
+| **MarkerArray** | `/gaze/markers` | 3D face bounding box cubes and gaze ray arrows |
+| **TF** | — | `gaze_face_{i}` transforms in `camera_optical_frame` |
+
+All topics are configured with `BEST_EFFORT` QoS to match the node's publisher.
+
+### What you'll see
+
+- **Annotated image** with green bounding boxes and cyan gaze arrows overlaid
+- **3D markers** (semi-transparent green cubes = face bboxes, magenta arrows = gaze rays)
+- **TF axes** for each detected face (`gaze_face_0`, `gaze_face_1`, ...)
+- Fixed frame is set to `camera_optical_frame`
+
+### Manual setup (if not using the config file)
 
 | Step | Action |
 |---|---|
 | 1 | Set **Global Options → Fixed Frame** to `camera_optical_frame` |
 | 2 | **Add → By topic** → `/gaze/image_annotated` as **Image** display |
 | 3 | **Add → By topic** → `/gaze/markers` as **MarkerArray** display |
-| 4 | In the Image display's **Properties → QoS Profile**, set it to `BEST_EFFORT` |
+| 4 | In the Image display → **QoS Profile → Reliability**, set to `Best Effort` |
 
-> If the image is blank in RViz, the QoS mismatch is the most common cause. The node publishes with `BEST_EFFORT` reliability — RViz's default is `RELIABLE`, which can prevent image data from arriving.
+> If the image is blank in RViz, this QoS mismatch is the most common cause.
 
-### What you'll see
+## WSL2 Setup (USB Webcam)
 
-- **Green bounding boxes** around detected faces
-- **Cyan gaze arrows** showing estimated gaze direction
-- **FPS counter** overlaid on the image
-- Each face also publishes a TF transform `gaze_face_{i}` in `camera_optical_frame`
+WSL2 does not expose host webcams by default. Use [usbipd-win](https://github.com/dorssel/usbipd-win) to attach your USB webcam into the WSL2 kernel.
 
-## WSL Setup (USB Webcam)
+### Prerequisites
 
-On WSL, USB devices aren't shared automatically. Attach your camera from **Windows (Admin PowerShell)**:
+- A **USB webcam** (internal MIPI/ISP laptop cameras are not supported via usbipd)
+- `usbipd-win` installed on Windows: `winget install usbipd`
+
+### One-time setup (Windows — Admin PowerShell)
 
 ```powershell
-winget install usbipd
-usbipd list                     # find your camera's BUSID
-usbipd bind --busid <BUSID>     # share it with WSL
+# List USB devices and find your camera's BUSID
+usbipd list
+
+# Bind (share) the camera — only needed once
+usbipd bind --busid <BUSID>
 ```
 
-Then on WSL:
+### Every session (before launching the node)
+
+**Step 1 — Attach the camera into WSL (Windows Admin PowerShell):**
+
+```powershell
+usbipd attach --wsl --busid <BUSID>
+```
+
+**Step 2 — Load the UVC driver and verify the device (WSL terminal):**
 
 ```bash
-sudo usbipd attach --wsl --busid <BUSID>
-ls /dev/video*                  # verify camera appears
+sudo modprobe uvcvideo
+ls -l /dev/video*          # should show /dev/video0 (and /dev/video1)
+v4l2-ctl --list-devices    # confirm camera name
 ```
+
+**Step 3 — Launch the node as normal:**
+
+```bash
+ros2 launch l2cs_gaze_perception gaze_pipeline.launch.py
+```
+
+### Notes
+
+- The attach **does not persist** across WSL restarts or camera replugs — repeat Steps 1–2 each session.
+- While attached to WSL, **Windows cannot use the camera** (Teams, browser, etc.). Run `usbipd detach --busid <BUSID>` to return it to Windows.
+- Run `sudo modprobe uvcvideo` again if `/dev/video*` disappears after a WSL restart.
 
 ## TF Frames
 

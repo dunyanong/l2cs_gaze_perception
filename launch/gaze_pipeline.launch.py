@@ -26,13 +26,13 @@ def generate_launch_description():
             name='gaze_node',
             output='screen',
             parameters=[
+                LaunchConfiguration('params_file'),
                 {
                     'camera_id': LaunchConfiguration('camera_id'),
                     'model_path': LaunchConfiguration('model_path'),
                     'model_arch': LaunchConfiguration('model_arch'),
                     'device': LaunchConfiguration('device'),
                 },
-                LaunchConfiguration('params_file'),
             ],
         ),
     ])
