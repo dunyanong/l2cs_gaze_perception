@@ -106,10 +106,12 @@ class GazeNode(Node):
             return
 
         # Run gaze pipeline
-        results = self.pipeline.step(frame)
-
-        # Annotate frame
-        frame_annotated = render(frame.copy(), results)
+        try:
+            results = self.pipeline.step(frame)
+            frame_annotated = render(frame.copy(), results)
+        except Exception as e:
+            self.get_logger().error(f'Pipeline error: {e}')
+            return
 
         # Compute FPS
         self.frame_count += 1

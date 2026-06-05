@@ -64,6 +64,7 @@ setup(
         ('share/' + package_name + '/launch', ['launch/gaze_pipeline.launch.py']),
         ('share/' + package_name + '/config', ['config/gaze_params.yaml']),
         ('share/' + package_name + '/models', ['models/L2CSNet_gaze360.pkl']),
+        ('share/' + package_name + '/rviz', ['rviz/gaze_pipeline.rviz']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
